@@ -1,6 +1,6 @@
 from messages import Replies, ResponseType
 
-from Repository import Repository
+from UserEntity import UserRepository
 import Validate
 
 # 1 - Associe-se
@@ -18,30 +18,35 @@ class UserState:
 class MessageHandler:
     def __init__(self, lang='br') -> None:
         self.lang = lang
-        self.repository = Repository()
+        self.repository = UserRepository()
 
     def format_response(self, response, user=None):
         text, media = response
         text = str(text).replace("{{prefix}}", Replies.Prefix.rand_prefix()).replace(
             "{{name}}", user.name if user is not None else '')
-        r = {'body': text, 'media': media}
-        return r
+        return {'body': text, 'media': media}
 
-    def format_auth_response(self, response, user, focus=True):
+    def format_auth_response(self, response, user, focus=True, on_completion=None):
         text, media = response
         data = self.get_pending_data(user)
+        print("pending data in format_auth_response: ", data)
+        print("onCompletion: ", on_completion)
+        if data is None and on_completion is not None:
+            print("data is none")
+            return on_completion(user)
 
         if focus is True:
-            if data == 'name':
-                text = str(text).replace("Nome", ">*Nome*")
-            elif data == 'email':
-                text = str(text).replace("Email", ">*Email*")
-            elif data == 'cpf':
-                text = str(text).replace("CPF", ">*CPF*")
-            elif data == 'registration':
-                text = str(text).replace("Matricula", ">*Matricula*")
-            elif data == 'cargo':
-                text = str(text).replace("Cargo", ">*Cargo*")
+            match data:
+                case 'name':
+                    text = str(text).replace("Nome", "> *Nome*")
+                case 'email':
+                    text = str(text).replace("Email", "> *Email*")
+                case 'cpf':
+                    text = str(text).replace("CPF", "> *CPF*")
+                case 'registration':
+                    text = str(text).replace("Matricula", "> *Matricula*")
+                case 'cargo':
+                    text = str(text).replace("Cargo", "> *Cargo*")
 
         text = str(text).replace("{{prefix}}", Replies.Prefix.rand_prefix())
         text = str(text).replace(
@@ -58,8 +63,7 @@ class MessageHandler:
             "{{endereço}}", user.endereco if user.endereco is not None else '')
         text = str(text).replace(
             "{{p3}}", user.p3 if user.p3 is not None else '')
-        r = {'body': text, 'media': media}
-        return r
+        return {'body': text, 'media': media}
 
     def get_pending_data(self, user):
         if user is None or user.state == 0:
@@ -72,132 +76,138 @@ class MessageHandler:
                 continue
         return None
 
-    def handle(self, message, sender):
-        user = self.repository.get_user_by_number(sender)
-        if user is not None:
-            if user.name is None:
-                if len(str(message).replace(" ", "")) <= 3 or len(str(message)) > 30:
-                    return self.format_response(Replies.Errors.INVALID_NAME)
-                else:
-                    username = str(message).replace(" ", "").lower()[
-                        0].upper() + str(message).lower()[1:]
-                    user = self.repository.update_username(sender, username)
-                    text, media = Replies.SAUDATION2
-                    body = str(text).replace("{{prefix}}", Replies.Prefix.rand_prefix()).replace(
-                        "{{name}}", user.name)
-                    return self.format_response((body, media))
-
-            else:
-                if user.state == 0:
-                    if str(message).lower() in ResponseType.VIEW_LIST:
-                        text, media = Replies.SAUDATION2
-                        body = str(text).replace("{{prefix}}", Replies.Prefix.rand_prefix()).replace(
-                            "{{name}}", user.name)
-                        return self.format_response((body, media))
-                    elif message == "1":
-                        self.repository.update_state(sender, 1)
-                        return self.format_auth_response(Replies.Authentication.AUTHENTICATION['1'], user)
-                    elif message == "2":
-                        return self.format_response(Replies.About.ABOUT_2)
-                    elif message == "3":
-                        return self.format_response(Replies.About.ABOUT_3)
-                    elif message == "4":
-                        return self.format_response(Replies.About.ABOUT_4)
-                    elif message == "5":
-                        return self.format_response(Replies.About.ABOUT_5)
-                    elif message == "6":
-                        return self.format_response(Replies.About.ABOUT_6)
-                    elif message == "7":
-                        return self.format_response(Replies.About.ABOUT_7)
-                    elif message == "8":
-                        return self.format_response(Replies.About.ABOUT_8)
-                    elif message == "9":
-                        return self.format_response(Replies.About.ABOUT_9)
-                    elif str(message).lower() in ResponseType.CHANGE_NAME:
-                        user.name = None
-                        return self.format_response(Replies.CHANGE_NAME)
-                    elif message == "creator":
-                        return self.format_response(Replies.CREATOR)
-                    else:
-                        return self.format_response(Replies.Errors.INVALID_RESPONSE)
-                else:
-                    if str(message).lower() in ResponseType.LEAVE_STATE:
-                        self.repository.update_state(sender, 0)
-                        self.repository.update_editing_state(sender, False)
-                        return self.format_response(Replies.SAUDATION2, user)
-
-                    elif str(message).lower() in ResponseType.VIEW_LIST:
-                        return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}'], user)
-
-                    elif str(message).lower() in ResponseType.EDIT_DATA:
-                        self.repository.update_editing_state(sender, True)
-                        return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}', 'Edit'], user, False)
-
-                    if user.editing is True:
-                        match message:
-                            case "1":
-                                user = self.repository.update_field(
-                                    sender, 'name', None)
-                            case "2":
-                                user = self.repository.update_field(
-                                    sender, 'email', None)
-                            case "3":
-                                user = self.repository.update_field(
-                                    sender, 'cpf', None)
-                            case "4":
-                                user = self.repository.update_field(
-                                    sender, 'registration', None)
-                            case "5":
-                                user = self.repository.update_field(
-                                    sender, 'cargo', None)
-                            case _:
-                                if (str(message).lower() in ResponseType.LEAVE_STATE):
-                                    self.repository.update_editing_state(
-                                        sender, False)
-                                    return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}'], user)
-                                return self.format_response(Replies.Errors.INVALID_RESPONSE)
-                        self.repository.update_editing_state(
-                            sender, False)
-                        return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}'], user)
-
-                    else:
-                        data = self.get_pending_data(user)
-
-                        # TODO: enviar mensagem de 'voce ja é associado' e dps mostrar o menu
-                        if data is None:
-                            return self.format_response(Replies.SAUDATION2, user)
-                        elif data == 'nome':
-                            return self.format_response(Replies.SAUDATION)
-                        elif data == 'email':
-                            email = str(message).lower().strip()
-                            if Validate.isEmailValid(email):
-                                user = self.repository.update_email(
-                                    sender, email)
-                                return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}'], user)
-                            else:
-                                return self.format_response(Replies.Errors.INVALID_EMAIL)
-                        elif data == 'cpf':
-                            cpf = Validate.validateAndFormatCPF(message)
-                            if cpf is not None:
-                                user = self.repository.update_cpf(
-                                    sender, cpf)
-                                return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}'], user)
-                            return self.format_response(Replies.Errors.INVALID_CPF)
-                        elif data == 'registration':
-                            if Validate.isMatriculaValid(message):
-                                user = self.repository.update_field(
-                                    sender, 'registration', message)
-                                return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}'], user)
-                            return self.format_response(Replies.Errors.INVALID_REGISTRATION)
-                        elif data == 'cargo':
-                            if Validate.isCargoValid(message):
-                                user = self.repository.update_field(
-                                    sender, 'cargo', message)
-                                return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}'], user)
-                            return self.format_response(Replies.Errors.INVALID_CARGO)
-                        else:
-                            return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}'], user)
-        else:
+    def handle_non_user(self, sender, message, user):
+        if user is None:
             self.repository.save_user(sender)
             print("user created")
             return self.format_response(Replies.SAUDATION)
+
+        username = Validate.validateName(message)
+        if username is None:
+            return self.format_response(Replies.Errors.INVALID_NAME)
+
+        user = self.repository.update_field(sender, 'name', username)
+        text, media = Replies.SAUDATION2
+        body = str(text).replace("{{prefix}}", Replies.Prefix.rand_prefix()).replace(
+            "{{name}}", user.name)
+        return self.format_response((body, media))
+
+    def handle_user_in_menu(self, sender, user, message):
+        if message in ResponseType.VIEW_LIST:
+            text, media = Replies.SAUDATION2
+            body = str(text).replace("{{prefix}}", Replies.Prefix.rand_prefix()).replace(
+                "{{name}}", user.name)
+            return self.format_response((body, media))
+        elif message == "1":
+            if (user.associated is True):
+                return self.format_response(Replies.SAUDATION4, user)
+            self.repository.update_state(sender, 1)
+            return self.format_auth_response(Replies.Authentication.AUTHENTICATION['1'], user)
+
+        elif message in ResponseType.CHANGE_NAME:
+            user.name = None
+            return self.format_response(Replies.CHANGE_NAME)
+
+        return self.format_response(Replies.ABOUT.get(message, Replies.Errors.INVALID_RESPONSE))
+
+    def handle_user_in_auth_edit(self, sender, user, message):
+        match message:
+            case "1":
+                user = self.repository.update_field(
+                    sender, 'name', None)
+            case "2":
+                user = self.repository.update_field(
+                    sender, 'email', None)
+            case "3":
+                user = self.repository.update_field(
+                    sender, 'cpf', None)
+            case "4":
+                user = self.repository.update_field(
+                    sender, 'registration', None)
+            case "5":
+                user = self.repository.update_field(
+                    sender, 'cargo', None)
+            case _:
+                if (message in ResponseType.LEAVE_STATE):
+                    self.repository.update_editing_state(
+                        sender, False)
+                    return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}'], user)
+                return self.format_response(Replies.Errors.INVALID_RESPONSE)
+        self.repository.update_editing_state(
+            sender, False)
+        return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}'], user)
+
+    def handle_data_update(self, sender, message, field, validation_func, error_response):
+        validation = validation_func(message)
+
+        if validation is not None and validation is not False:
+            user = self.repository.update_field(sender, field, message)
+            print("handle data update: ", self.handle_user_completed_sign_up)
+            return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}'], user, on_completion=self.handle_user_completed_sign_up)
+        else:
+            return self.format_response(error_response)
+
+    def handle_user_completed_sign_up(self, user):
+        print("user completed sign up")
+        self.repository.update_field(user.number, 'associated', True)
+        self.repository.update_state(user.number, 0)
+        return self.format_response(Replies.SAUDATION3, user)
+
+    def handle_user_signing_up(self, sender, user, message):
+        data = self.get_pending_data(user)
+        print("data: ", data)
+        match data:
+            case None:
+                # TODO: enviar mensagem de 'voce ja entrou com os dados necessarios' e dps mostrar o menu
+                self.repository.update_editing_state(sender, False)
+                self.repository.update_state(sender, 0)
+                return self.format_response(Replies.SAUDATION3, user)
+            case 'nome':
+                return self.format_response(Replies.SAUDATION)
+            case 'email':
+                email = str(message).lower().strip()
+                return self.handle_data_update(
+                    sender, email, 'email', Validate.isEmailValid, Replies.Errors.INVALID_EMAIL)
+            case 'cpf':
+                return self.handle_data_update(
+                    sender, message, 'cpf', Validate.validateAndFormatCPF, Replies.Errors.INVALID_CPF)
+            case 'registration':
+                return self.handle_data_update(
+                    sender, message, 'registration', Validate.isMatriculaValid, Replies.Errors.INVALID_REGISTRATION)
+            case 'cargo':
+                return self.handle_data_update(
+                    sender, message, 'cargo', Validate.isCargoValid, Replies.Errors.INVALID_CARGO)
+            case _:
+                return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}'], user)
+
+    def handle_user_in_auth(self, sender, user, message):
+        if message in ResponseType.LEAVE_STATE:
+            self.repository.update_state(sender, 0)
+            self.repository.update_editing_state(sender, False)
+            return self.format_response(Replies.SAUDATION2, user)
+
+        elif message in ResponseType.VIEW_LIST:
+            return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}'], user)
+
+        elif message in ResponseType.EDIT_DATA:
+            self.repository.update_editing_state(sender, True)
+            return self.format_auth_response(Replies.Authentication.AUTHENTICATION[f'{user.state}', 'Edit'], user, False)
+
+        if user.editing is True:
+            return self.handle_user_in_auth_edit(sender, user, message)
+
+        else:
+            return self.handle_user_signing_up(sender, user, message)
+
+    def handle(self, message, sender):
+        user = self.repository.get_user_by_number(sender)
+        message = str(message).lower().strip()
+
+        if user is None or user.name is None:
+            return self.handle_non_user(sender, message, user)
+
+        else:
+            if user.state == 0:
+                return self.handle_user_in_menu(sender, user, message)
+            else:
+                return self.handle_user_in_auth(sender, user, message)

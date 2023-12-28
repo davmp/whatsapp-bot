@@ -21,12 +21,13 @@ class User(Base):
     # 0 - normal, 1 - associando, 2 - cadastrando
     state = Column(Integer, default=0)
     editing = Column(Boolean, default=False)
+    associated = Column(Boolean, default=False)
 
     def __repr__(self):
         return f"<User(number={self.number}, name={self.name}, email={self.email}, cpf={self.cpf}, registration={self.registration}, cargo={self.cargo}, endereço={self.endereco}, p3={self.p3}, state={self.state}, editing={self.editing})>".format(self.number, self.name, self.email, self.cpf, self.registration, self.cargo, self.endereco, self.p3, self.state, self.editing)
 
 
-class Repository:
+class UserRepository:
     database = create_engine("sqlite:///database.db", echo=True)
     Base.metadata.create_all(database)
     Session = sessionmaker(bind=database)
@@ -50,27 +51,6 @@ class Repository:
         q = self.session.query(User).filter(
             User.number == user_number).one_or_none()
         q.editing = state
-        self.session.commit()
-        return q
-
-    def update_username(self, user_number, name):
-        q = self.session.query(User).filter(
-            User.number == user_number).one_or_none()
-        q.name = name
-        self.session.commit()
-        return q
-
-    def update_email(self, user_number, email):
-        q = self.session.query(User).filter(
-            User.number == user_number).one_or_none()
-        q.email = email
-        self.session.commit()
-        return q
-
-    def update_cpf(self, user_number, cpf):
-        q = self.session.query(User).filter(
-            User.number == user_number).one_or_none()
-        q.cpf = cpf
         self.session.commit()
         return q
 

@@ -3,7 +3,9 @@ import re
 
 
 def isEmailValid(email: str) -> bool:
-    return True if re.match(r"[^@]+@[^@]+\.[^@]+", email) else False
+    regex = re.compile(
+        r"([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \t]|(\\[\t -~]))+\")@([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\[[\t -Z^-~]*])")
+    return True if re.fullmatch(regex, email) else False
 
 
 def isCPFValid(cpf: str) -> bool:
@@ -33,3 +35,9 @@ def validateAndFormatCPF(cpf: str) -> str:
 
 def isCargoValid(cargo: str) -> bool:
     return True
+
+
+def validateName(name: str) -> str:
+    if len(str(name).replace(" ", "")) <= 3 or len(str(name)) > 30:
+        return None
+    return str(name).strip().title()
