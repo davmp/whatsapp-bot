@@ -10,14 +10,11 @@ def bot():
     sender = request.values.get('From', '')
     
     messageHandler = MessageHandler()
-    response = messageHandler.handle(message)
-    if response == ResponseType.GRAPE:
-        response = {"body": "Por favor, digite seu nome para continuar", "media": None}
+    response = messageHandler.handle(message, sender)
 
     resp = MessagingResponse()
     msg = resp.message()
 
-    print(str(response))
     msg.body(response['body'])
     if (response['media'] is not None):
         msg.media(response['media'])
