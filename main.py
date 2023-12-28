@@ -4,11 +4,12 @@ from dispatcher import MessageHandler, ResponseType
 
 app = Flask(__name__)
 
+
 @app.route('/bot', methods=['POST'])
 def bot():
     message = request.values.get('Body', '')
     sender = request.values.get('From', '')
-    
+
     messageHandler = MessageHandler()
     response = messageHandler.handle(message, sender)
 
@@ -21,9 +22,11 @@ def bot():
 
     return str(resp)
 
+
 @app.route('/')
 def index():
     return "É isso aqui x 3!"
+
 
 if __name__ == '__main__':
     app.run()
