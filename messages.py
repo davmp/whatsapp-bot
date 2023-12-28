@@ -17,8 +17,9 @@ class Replies:
     SAUDATION = (
         "Olá, você acessou o atendimento digital da ANASP. 😃\n\nQual é o seu primeiro nome?", None)
     SAUDATION2 = ("Muito bem, *{{name}}*, seja bem vindo(a), Como podemos te ajudar? Digite apenas o *número* referente a opção desejada:\n\n1️⃣ Associe-se 🏢\n2️⃣ Institucional\n3️⃣ Quem é quem❓\n4️⃣ Benefícios 📌\n5️⃣ Resultados de Exames 📄\n6️⃣ Sou médico(a) 👨‍⚕️👩‍⚕️\n7️⃣ Demais solicitações❓\n8️⃣ Registrar reclamação 📝\n9️⃣ Agilizar meu atendimento da Unidade Nilópolis 📈\n\nPressione 'p' caso esse não seja seu nome.\nPressione 's' para receber novamente a lista de funcionalidades.",  None)
-    SAUDATION3 = ("Você completou o cadastro de todos os campos necessários!\n\nMuito bem, *{{name}}*, seja bem vindo(a), Como podemos te ajudar? Digite apenas o *número* referente a opção desejada:\n\n1️⃣ Associe-se 🏢\n2️⃣ Institucional\n3️⃣ Quem é quem❓\n4️⃣ Benefícios 📌\n5️⃣ Resultados de Exames 📄\n6️⃣ Sou médico(a) 👨‍⚕️👩‍⚕️\n7️⃣ Demais solicitações❓\n8️⃣ Registrar reclamação 📝\n9️⃣ Agilizar meu atendimento da Unidade Nilópolis 📈\n\nPressione 'p' caso esse não seja seu nome.\nPressione 's' para receber novamente a lista de funcionalidades.",  None)
-    SAUDATION4 = ("Você já é associado!\n\nMuito bem, *{{name}}*, seja bem vindo(a), Como podemos te ajudar? Digite apenas o *número* referente a opção desejada:\n\n1️⃣ Associe-se 🏢\n2️⃣ Institucional\n3️⃣ Quem é quem❓\n4️⃣ Benefícios 📌\n5️⃣ Resultados de Exames 📄\n6️⃣ Sou médico(a) 👨‍⚕️👩‍⚕️\n7️⃣ Demais solicitações❓\n8️⃣ Registrar reclamação 📝\n9️⃣ Agilizar meu atendimento da Unidade Nilópolis 📈\n\nPressione 'p' caso esse não seja seu nome.\nPressione 's' para receber novamente a lista de funcionalidades.",  None)
+    SAUDATION3 = (
+        "Você completou o cadastro de todos os campos necessários!",  None)
+    SAUDATION4 = ("Você já é associado!",  None)
     CHANGE_NAME = (
         "Desculpe pelo inconveniente.\nPor favor, digite seu nome para continuar...", None)
     TROLL = ("This is what happeneds when you Fall in love with someone",
@@ -32,7 +33,7 @@ class Replies:
     ABOUT['2'] = ("Análises Clínicas (inclusive pela Coleta Domiciliar)\n\nA ANASP tem como objetivo oferecer informações sobre os exames solicitados pelo SUS. Essas informações são obtidas através de laborato", None)
     ABOUT['3'] = ("Ultrassonografia 🖥️\n\nA ANASP tem como objetivo oferecer informações sobre os exames solicitados pelo SUS. Essas informações são obtidas através de laborato", None)
     ABOUT['4'] = ("Endereços e Horários de funcionamento das Unidades 📌\n\nA ANASP tem como objetivo oferecer informações sobre os exames solicitados pelo SUS. Essas informações são obtidas através de laborato",
-                  "http://127.0.0.1:8000/evolute-logo-teste.png")
+                  "https://aaa2-189-36-130-29.ngrok-free.app/images/evolute-logo-teste.png")
     ABOUT['5'] = ("Resultados de Exames 📄\n\nA ANASP tem como objetivo oferecer informações sobre os exames solicitados pelo SUS. Essas informações são obtidas através de laborato", None)
     ABOUT['6'] = ("Sou médico(a) 👨‍⚕️👩‍⚕️\n\nA ANASP tem como objetivo oferecer informações sobre os exames solicitados pelo SUS. Essas informações são obtidas através de laborato", None)
     ABOUT['7'] = ("Demais solicitações❓\n\nA ANASP tem como objetivo oferecer informações sobre os exames solicitados pelo SUS. Essas informações são obtidas através de laborato", None)

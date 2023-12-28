@@ -2,6 +2,7 @@ from messages import Replies, ResponseType
 
 from UserEntity import UserRepository
 import Validate
+from messager import Messager
 
 # 1 - Associe-se
 # 2 - Covid-19
@@ -19,6 +20,7 @@ class MessageHandler:
     def __init__(self, lang='br') -> None:
         self.lang = lang
         self.repository = UserRepository()
+        self.messager = Messager()
 
     def format_response(self, response, user=None):
         text, media = response
@@ -92,7 +94,7 @@ class MessageHandler:
             "{{name}}", user.name)
         return self.format_response((body, media))
 
-    def handle_user_in_menu(self, sender, user, message):
+    async def handle_user_in_menu(self, sender, user, message):
         if message in ResponseType.VIEW_LIST:
             text, media = Replies.SAUDATION2
             body = str(text).replace("{{prefix}}", Replies.Prefix.rand_prefix()).replace(
@@ -100,7 +102,9 @@ class MessageHandler:
             return self.format_response((body, media))
         elif message == "1":
             if (user.associated is True):
-                return self.format_response(Replies.SAUDATION4, user)
+                await self.messager.send_message(
+                    Replies.SAUDATION4[0], sender)
+                return self.format_response(Replies.SAUDATION2, user)
             self.repository.update_state(sender, 1)
             return self.format_auth_response(Replies.Authentication.AUTHENTICATION['1'], user)
 
@@ -147,21 +151,24 @@ class MessageHandler:
         else:
             return self.format_response(error_response)
 
-    def handle_user_completed_sign_up(self, user):
+    async def handle_user_completed_sign_up(self, user):
         print("user completed sign up")
         self.repository.update_field(user.number, 'associated', True)
         self.repository.update_state(user.number, 0)
-        return self.format_response(Replies.SAUDATION3, user)
+        await self.messager.send_message(
+            Replies.SAUDATION3[0], user.number)
+        return self.format_response(Replies.SAUDATION2, user)
 
-    def handle_user_signing_up(self, sender, user, message):
+    async def handle_user_signing_up(self, sender, user, message):
         data = self.get_pending_data(user)
         print("data: ", data)
         match data:
             case None:
-                # TODO: enviar mensagem de 'voce ja entrou com os dados necessarios' e dps mostrar o menu
                 self.repository.update_editing_state(sender, False)
                 self.repository.update_state(sender, 0)
-                return self.format_response(Replies.SAUDATION3, user)
+                await self.messager.send_message(
+                    Replies.SAUDATION3[0], sender)
+                return self.format_response(Replies.SAUDATION2, user)
             case 'nome':
                 return self.format_response(Replies.SAUDATION)
             case 'email':

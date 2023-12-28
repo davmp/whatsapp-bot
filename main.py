@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 from twilio.twiml.messaging_response import MessagingResponse
 from dispatcher import MessageHandler, ResponseType
 
@@ -6,12 +6,12 @@ app = Flask(__name__)
 
 
 @app.route('/bot', methods=['POST'])
-def bot():
+async def bot():
     message = request.values.get('Body', '')
     sender = request.values.get('From', '')
 
     messageHandler = MessageHandler()
-    response = messageHandler.handle(message, sender)
+    response = await messageHandler.handle(message, sender)
 
     resp = MessagingResponse()
     msg = resp.message()
@@ -21,6 +21,11 @@ def bot():
         msg.media(response['media'])
 
     return str(resp)
+
+
+@app.route('/images/<path:path>')
+def send_image(path):
+    return send_from_directory('static/images', path)
 
 
 @app.route('/')
